@@ -12,60 +12,109 @@ import java.util.List;
 
 @Service
 public class ProgramService {
-    @Autowired
-    private ProgramRepository programRepository;
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private MailService mailService;
+@Autowired
+private ProgramRepository programRepository;
+@Autowired
+private MemberRepository memberRepository;
+@Autowired
+private MailService mailService;
 
-        public Program addProgram(Program program) {
-            Program saved = programRepository.save(program);
+            public Program addProgram(Program program) {
+                Program saved = programRepository.save(program);
 
-            // Notify all members
-            memberRepository.findAll().forEach(member -> {
-                String email = member.getEmail();
-                if (isValidEmail(email)) {
-                    try {
-                        mailService.sendEmail(
-                                email,
-                                "New Program Added: " + (program.getName() != null ? program.getName() : "No Name"),
-                                "A new program has been added: " + (program.getDescription() != null ? program.getDescription() : "No Description") +
-                                        "\nDate: " + (program.getProgramDate() != null ? program.getProgramDate().toString() : "No Date")
-                        );
-                    } catch (Exception ex) {
-                        System.err.println("Failed to send email to: " + email + ". Error: " + ex.getMessage());
+                // Notify all members
+                memberRepository.findAll().forEach(member -> {
+                    String email = member.getEmail();
+                    if (isValidEmail(email)) {
+                        try {
+                            mailService.sendEmail(
+                                    email,
+                                    "New Program Added: " + (program.getName() != null ? program.getName() : "No Name"),
+                                    buildProgramNotification(program)
+                            );
+                        } catch (Exception ex) {
+                            System.err.println("Failed to send email to: " + email + ". Error: " + ex.getMessage());
+                        }
+                    } else {
+                        System.err.println("Invalid email skipped: " + email);
                     }
-                } else {
-                    System.err.println("Invalid email skipped: " + email);
-                }
-            });
+                });
 
-            return saved;
-        }
+                return saved;
+            }
 
-    private boolean isValidEmail(String email) {
-        if (email == null || email.trim().isEmpty()) return false;
-        // Basic structure check
-        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(emailRegex);
+            private boolean isValidEmail(String email) {
+                if (email == null || email.trim().isEmpty()) return false;
+                // Basic structure check
+                String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+                return email.matches(emailRegex);
+            }
+    private String buildProgramNotification(Program program) {
+        StringBuilder message = new StringBuilder("A new program has been added:\n\n");
+
+        message.append("Name: ")
+                .append(program.getName() != null ? program.getName() : "No Name")
+                .append("\n");
+
+        message.append("Description: ")
+                .append(program.getDescription() != null ? program.getDescription() : "No Description")
+                .append("\n");
+
+        message.append("Date: ")
+                .append(program.getProgramDate() != null ? program.getProgramDate().toString() : "No Date")
+                .append("\n");
+
+        message.append("Time: ")
+                .append(program.getProgramTime() != null ? program.getProgramTime().toString() : "No Time")
+                .append("\n");
+
+        message.append("Venue: ")
+                .append(program.getVenue() != null ? program.getVenue() : "No Venue");
+
+        return message.toString();
     }
-
-
-
-//    private boolean isValidEmail(String email) {
-//        return email != null && !email.trim().isEmpty() && email.contains("@") && email.contains(".");
-//    }
 
     public List<Program> getAllPrograms() {
-        return programRepository.findAll();
-    }
-
-    public List<Program> getProgramsByName(String name) {
-            List<Program> programs = programRepository.findByName(name);
-            if (programs.isEmpty()) {
-                throw new NotFoundException("No program found for: " + name);
+                return programRepository.findAll();
             }
-            return programs;
+
+            public List<Program> getProgramsByName(String name) {
+                    List<Program> programs = programRepository.findByName(name);
+                    if (programs.isEmpty()) {
+                        throw new NotFoundException("No program found for: " + name);
+                    }
+                    return programs;
+                }
+
+            public Program updateProgram(Long id, Program updatedProgram) {
+                Program program = programRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Program not found with id: " + id));
+
+                // Update fields
+                program.setName(updatedProgram.getName());
+                program.setVenue(updatedProgram.getVenue());
+                program.setDescription(updatedProgram.getDescription());
+                program.setProgramDate(updatedProgram.getProgramDate());
+                program.setProgramTime(updatedProgram.getProgramTime());
+
+                Program savedProgram = programRepository.save(program);
+                // Notify all members after update
+                memberRepository.findAll().forEach(member -> {
+                    String email = member.getEmail();
+                    if (isValidEmail(email)) {
+                        try {
+                            mailService.sendEmail(
+                                    email,
+                                    "Program Updated: " + (program.getName() != null ? program.getName() : "No Name"),
+                                    buildProgramNotification(program)
+                            );
+                        } catch (Exception e) {
+                            System.err.println("Failed to notify " + email + ": " + e.getMessage());
+                        }
+                    }
+                });
+
+                return savedProgram;
+            }
         }
-}
+

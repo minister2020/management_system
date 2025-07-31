@@ -18,7 +18,7 @@ public class ProgramController {
        return  programService.addProgram(program);
    }
 
-@GetMapping("/allProgram")
+    @GetMapping("/allProgram")
    public List<Program> getAllPrograms() {
        return programService.getAllPrograms();
    }
@@ -26,5 +26,10 @@ public class ProgramController {
     @GetMapping("/by-name")
     public List<Program> getProgramsByName(@RequestParam String name) {
         return programService.getProgramsByName(name);
+    }
+
+    @PutMapping("/{id}")
+    public Program updateProgram(@PathVariable Long id, @RequestBody Program updatedProgram) {
+        return programService.updateProgram(id, updatedProgram);
     }
 }
