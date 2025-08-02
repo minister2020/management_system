@@ -1,23 +1,25 @@
 package com.managementSystem.managementSystem.servive;
 
 import com.managementSystem.managementSystem.exception.NotFoundException;
-import com.managementSystem.managementSystem.model.IssueReport;
 import com.managementSystem.managementSystem.model.Program;
 import com.managementSystem.managementSystem.repository.MemberRepository;
 import com.managementSystem.managementSystem.repository.ProgramRepository;
+import com.managementSystem.managementSystem.util.ProgramUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class ProgramService {
-@Autowired
-private ProgramRepository programRepository;
-@Autowired
-private MemberRepository memberRepository;
-@Autowired
-private MailService mailService;
+    @Service
+    public class ProgramService {
+    @Autowired
+    private ProgramRepository programRepository;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private ProgramUtil programUtil;
 
             public Program addProgram(Program program) {
                 Program saved = programRepository.save(program);
@@ -30,7 +32,7 @@ private MailService mailService;
                             mailService.sendEmail(
                                     email,
                                     "New Program Added: " + (program.getName() != null ? program.getName() : "No Name"),
-                                    buildProgramNotification(program)
+                                programUtil.buildProgramNotification(program)
                             );
                         } catch (Exception ex) {
                             System.err.println("Failed to send email to: " + email + ". Error: " + ex.getMessage());
@@ -49,30 +51,6 @@ private MailService mailService;
                 String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
                 return email.matches(emailRegex);
             }
-    private String buildProgramNotification(Program program) {
-        StringBuilder message = new StringBuilder("A new program has been added:\n\n");
-
-        message.append("Name: ")
-                .append(program.getName() != null ? program.getName() : "No Name")
-                .append("\n");
-
-        message.append("Description: ")
-                .append(program.getDescription() != null ? program.getDescription() : "No Description")
-                .append("\n");
-
-        message.append("Date: ")
-                .append(program.getProgramDate() != null ? program.getProgramDate().toString() : "No Date")
-                .append("\n");
-
-        message.append("Time: ")
-                .append(program.getProgramTime() != null ? program.getProgramTime().toString() : "No Time")
-                .append("\n");
-
-        message.append("Venue: ")
-                .append(program.getVenue() != null ? program.getVenue() : "No Venue");
-
-        return message.toString();
-    }
 
     public List<Program> getAllPrograms() {
                 return programRepository.findAll();
@@ -106,7 +84,7 @@ private MailService mailService;
                             mailService.sendEmail(
                                     email,
                                     "Program Updated: " + (program.getName() != null ? program.getName() : "No Name"),
-                                    buildProgramNotification(program)
+                                    programUtil.buildProgramUpdateNotification(program)
                             );
                         } catch (Exception e) {
                             System.err.println("Failed to notify " + email + ": " + e.getMessage());
