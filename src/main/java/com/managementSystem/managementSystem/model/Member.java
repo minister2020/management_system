@@ -19,6 +19,7 @@ public class Member {
     private String gender;
     private String workInfo;
     private String address;
+    private String phoneNumber;
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<Member> kids;

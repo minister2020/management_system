@@ -20,32 +20,55 @@ import java.util.List;
     private MailService mailService;
     @Autowired
     private ProgramUtil programUtil;
+    @Autowired
+    private SmsService smsService;
 
-            public Program addProgram(Program program) {
-                Program saved = programRepository.save(program);
+        public Program addProgram(Program program) {
+            Program saved = programRepository.save(program);
 
-                // Notify all members
-                memberRepository.findAll().forEach(member -> {
-                    String email = member.getEmail();
-                    if (isValidEmail(email)) {
-                        try {
-                            mailService.sendEmail(
-                                    email,
-                                    "New Program Added: " + (program.getName() != null ? program.getName() : "No Name"),
-                                programUtil.buildProgramNotification(program)
-                            );
-                        } catch (Exception ex) {
-                            System.err.println("Failed to send email to: " + email + ". Error: " + ex.getMessage());
-                        }
-                    } else {
-                        System.err.println("Invalid email skipped: " + email);
+            // Prepare email content
+            String emailMessage = programUtil.buildProgramNotification(program);
+            String subject = "New Program Added: " + (program.getName() != null ? program.getName() : "No Name");
+
+            // Notify all members
+            memberRepository.findAll().forEach(member -> {
+                String email = member.getEmail();
+                String phone = member.getPhoneNumber();
+
+                // Send Email if valid
+                if (isValidEmail(email)) {
+                    try {
+                        mailService.sendEmail(email, subject, emailMessage);
+                    } catch (Exception ex) {
+                        System.err.println("❌ Failed to send email to: " + email + ". Error: " + ex.getMessage());
                     }
-                });
+                } else {
+                    System.err.println("⚠️ Invalid email skipped: " + email);
+                }
 
-                return saved;
+                // Send SMS if phone number is provided
+                if (phone != null && !phone.isBlank()) {
+                    String formattedPhone = formatPhoneNumberToInternational(phone);
+                    try {
+                        smsService.sendSms(formattedPhone, program);
+                    } catch (Exception ex) {
+                        System.err.println("❌ Failed to send SMS to: " + phone + ". Error: " + ex.getMessage());
+                    }
+                } else {
+                    System.err.println("⚠️ No phone number for member: " + member.getFamily());
+                }
+            });
+
+            return saved;
+        }
+        private String formatPhoneNumberToInternational(String phone) {
+            if (phone.startsWith("0") && phone.length() == 11) {
+                return "234" + phone.substring(1);
             }
+            return phone;
+        }
 
-            private boolean isValidEmail(String email) {
+        private boolean isValidEmail(String email) {
                 if (email == null || email.trim().isEmpty()) return false;
                 // Basic structure check
                 String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
@@ -77,18 +100,35 @@ import java.util.List;
 
                 Program savedProgram = programRepository.save(program);
                 // Notify all members after update
+                String emailMessage = programUtil.buildProgramUpdateNotification(program);
+                String subject = " Program Updated: " + (program.getName() != null ? program.getName() : "No Name");
+
+                // Notify all members
                 memberRepository.findAll().forEach(member -> {
                     String email = member.getEmail();
+                    String phone = member.getPhoneNumber();
+
+                    // Send Email if valid
                     if (isValidEmail(email)) {
                         try {
-                            mailService.sendEmail(
-                                    email,
-                                    "Program Updated: " + (program.getName() != null ? program.getName() : "No Name"),
-                                    programUtil.buildProgramUpdateNotification(program)
-                            );
-                        } catch (Exception e) {
-                            System.err.println("Failed to notify " + email + ": " + e.getMessage());
+                            mailService.sendEmail(email, subject, emailMessage);
+                        } catch (Exception ex) {
+                            System.err.println("❌ Failed to send email to: " + email + ". Error: " + ex.getMessage());
                         }
+                    } else {
+                        System.err.println("⚠️ Invalid email skipped: " + email);
+                    }
+
+                    // Send SMS if phone number is provided
+                    if (phone != null && !phone.isBlank()) {
+                        String formattedPhone = formatPhoneNumberToInternational(phone);
+                        try {
+                            smsService.sendSmsUpdate(formattedPhone, program);
+                        } catch (Exception ex) {
+                            System.err.println("❌ Failed to send SMS to: " + phone + ". Error: " + ex.getMessage());
+                        }
+                    } else {
+                        System.err.println("⚠️ No phone number for member: " + member.getFamily());
                     }
                 });
 

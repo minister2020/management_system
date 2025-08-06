@@ -1,5 +1,6 @@
 package com.managementSystem.managementSystem.controller;
 
+import com.managementSystem.managementSystem.model.Member;
 import com.managementSystem.managementSystem.model.Program;
 import com.managementSystem.managementSystem.servive.ProgramService;
 import org.springframework.beans.factory.annotation.Autowired;
