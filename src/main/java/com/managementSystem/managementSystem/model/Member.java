@@ -19,6 +19,8 @@ public class Member {
     private String gender;
     private String workInfo;
     private String address;
+
+    @Column(unique = true)
     private String phoneNumber;
 
     @OneToMany(cascade = CascadeType.ALL)
@@ -28,9 +30,8 @@ public class Member {
     private Member spouse;
 
     private String family;
-    @Email(message = "Email is required")
-    @Column(nullable = false, unique = true)
-    @NotBlank(message = "Email should be valid")
+
+    @Column(unique = true, nullable = true)
     private String email;
 
 

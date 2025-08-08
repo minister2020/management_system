@@ -1,9 +1,9 @@
 package com.managementSystem.managementSystem.controller;
 
 import com.managementSystem.managementSystem.model.Member;
-import com.managementSystem.managementSystem.model.Program;
 import com.managementSystem.managementSystem.servive.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class MemberController {
     private MemberService memberService;
 
     @PostMapping("/register")
-    public Member registerMember(@RequestBody Member member) {
+    public ResponseEntity<?> registerMember(@RequestBody Member member) {
         return memberService.registerMember(member);
     }
 
