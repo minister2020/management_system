@@ -1,9 +1,7 @@
 package com.managementSystem.managementSystem.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.managementSystem.managementSystem.model.Enum.ProgramMode;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,10 +15,18 @@ public class Program {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
+
     private String venue;
+
     private String description;
+
     private LocalDate programDate;
+
     private LocalTime programTime;
+
+    @Enumerated(EnumType.STRING)
+    private ProgramMode programIsFor;
 
 }
