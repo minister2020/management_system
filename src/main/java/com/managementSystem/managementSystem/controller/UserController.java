@@ -1,9 +1,6 @@
 package com.managementSystem.managementSystem.controller;
 
-import com.managementSystem.managementSystem.model.LoginRequest;
-import com.managementSystem.managementSystem.model.LoginResponse;
-import com.managementSystem.managementSystem.model.SignupRequest;
-import com.managementSystem.managementSystem.model.User;
+import com.managementSystem.managementSystem.model.*;
 import com.managementSystem.managementSystem.repository.UserRepository;
 import com.managementSystem.managementSystem.servive.UserService;
 import com.managementSystem.managementSystem.util.JwtUtils;
@@ -35,6 +32,9 @@ public class UserController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -55,6 +55,16 @@ public class UserController {
         String token = jwtUtils.generateToken((UserDetails) authentication.getPrincipal());
 
         return ResponseEntity.ok(new LoginResponse("Login successful", token));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetRequest request) {
+        boolean updated = userService.resetPassword(request.getUsername(), request.getNewPassword());
+        if (updated) {
+            return ResponseEntity.ok("Password reset successful.");
+        } else {
+            return ResponseEntity.badRequest().body("User not found or error resetting password.");
+        }
     }
 }
 
