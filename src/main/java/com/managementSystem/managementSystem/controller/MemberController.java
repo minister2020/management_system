@@ -1,6 +1,7 @@
 package com.managementSystem.managementSystem.controller;
 
 import com.managementSystem.managementSystem.model.Member;
+import com.managementSystem.managementSystem.model.UpdateChildRequest;
 import com.managementSystem.managementSystem.servive.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,12 @@ public class MemberController {
     public Member updateAddress(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         String address = payload.get("address");
         return memberService.updateAddress(id, address);
+    }
+    @PutMapping("/{memberId}/children/update")
+    public ResponseEntity<Member> updateChild(
+            @PathVariable Long memberId,
+            @RequestBody UpdateChildRequest request) {
+        Member updated = memberService.updateChild(memberId, request);
+        return ResponseEntity.ok(updated);
     }
 }

@@ -1,8 +1,6 @@
 package com.managementSystem.managementSystem.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,12 +17,14 @@ public class Member {
     private String workInfo;
     private String address;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "member_children",
+            joinColumns = @JoinColumn(name = "member_id")
+    )
+    private List<Children> children;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Member> kids;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    private Member spouse;
+    private String spouse;
 
     private String family;
 
